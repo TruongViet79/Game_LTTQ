@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 // Thêm cái này để dùng Resources
 using Game.Properties;
@@ -19,6 +20,7 @@ namespace Game
     /// </summary>
     public partial class Form1 : Form
     {
+        // --- Biến của Player (từ code của sếp) ---
         private List<Image> IdleImages = new List<Image>();
         private List<Image> WalkImagesRight = new List<Image>();
         private List<Image> WalkImagesLeft = new List<Image>();
@@ -47,19 +49,39 @@ namespace Game
         private int velocityY = 0;
         private int groundY = 200;
 
-        // BACKGROUND
         private Image backgroundImage;
+
+        // --- Biến của Attack Effect (gộp vào) ---
+        // <<< MỚI: Thêm biến cho Attack Effect
+        private SpellEffect currentEffect = null;
 
         public Form1()
         {
             InitializeComponent();
-            LoadIdleImages();
-            LoadJumpImages();
-            LoadBackground();
+
+            // <<< MỚI: Dời 4 HÀM LOAD xuống Form1_Load cho đúng bài
+            // LoadIdleImages();
+            // LoadJumpImages();
+            // LoadBackground();
+            // SpellEffect.LoadContent();
+
             this.DoubleBuffered = true;
             this.KeyPreview = true;
             animationTimer.Start();
         }
+
+        // <<< MỚI: TẠO LẠI HÀM FORM1_LOAD ĐỂ SỬA LỖI
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Dời code load của sếp vào đây
+            LoadIdleImages();
+            LoadJumpImages();
+            LoadBackground();
+
+            // Sếp phải chắc chắn 8 ảnh Fire_Arrow... có trong Resources nhé!
+            SpellEffect.LoadContent();
+        }
+
 
         private void LoadIdleImages()
         {
@@ -76,9 +98,7 @@ namespace Game
         // CẮT SPRITE SHEET NHẢY (CẢ TRÁI VÀ PHẢI)
         private void LoadJumpImages()
         {
-            // Load sprite sheet nhảy phải
             Image jumpSpriteSheetRight = Image.FromFile(@"Resources\CharacterJump\Right\jump_spritesheet.png");
-            // Load sprite sheet nhảy trái
             Image jumpSpriteSheetLeft = Image.FromFile(@"Resources\CharacterJump\Left\jump_spritesheett.png");
 
             int frameCount = JumpIndexMaxImages;
@@ -129,42 +149,61 @@ namespace Game
 
         private void LoadBackground()
         {
-            backgroundImage = Image.FromFile(@"Resources\Background\background.jpg");
+            try
+            {
+                // Sếp PHẢI thêm ảnh background vào Resources.resx và đặt tên là "background"
+                backgroundImage = Resources.background;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi load ảnh Background: " + ex.Message + "\nSếp đã thêm ảnh (background) vào Resources.resx chưa?");
+            }
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            // VẼ BACKGROUND
             if (backgroundImage != null)
             {
                 e.Graphics.DrawImage(backgroundImage, 0, 0, this.ClientSize.Width, this.ClientSize.Height);
             }
 
-            // VẼ NHÂN VẬT
             int safeIndex = CurrentImageIndex;
+            Image playerImage = null; // <<< MỚI: Lưu lại ảnh player để lấy width/height
 
             switch (currentState)
             {
                 case CharacterState.Idle:
                     if (safeIndex < IdleImages.Count)
-                        e.Graphics.DrawImage(IdleImages[safeIndex], new Point(posX, posY));
+                        playerImage = IdleImages[safeIndex];
                     break;
                 case CharacterState.WalkRight:
                     if (safeIndex < WalkImagesRight.Count)
-                        e.Graphics.DrawImage(WalkImagesRight[safeIndex], new Point(posX, posY));
+                        playerImage = WalkImagesRight[safeIndex];
                     break;
                 case CharacterState.WalkLeft:
                     if (safeIndex < WalkImagesLeft.Count)
-                        e.Graphics.DrawImage(WalkImagesLeft[safeIndex], new Point(posX, posY));
+                        playerImage = WalkImagesLeft[safeIndex];
                     break;
                 case CharacterState.JumpRight:
                     if (safeIndex < JumpImagesRight.Count)
-                        e.Graphics.DrawImage(JumpImagesRight[safeIndex], new Point(posX, posY));
+                        playerImage = JumpImagesRight[safeIndex];
                     break;
                 case CharacterState.JumpLeft:
                     if (safeIndex < JumpImagesLeft.Count)
-                        e.Graphics.DrawImage(JumpImagesLeft[safeIndex], new Point(posX, posY));
+                        playerImage = JumpImagesLeft[safeIndex];
                     break;
+            }
+
+            // Thực hiện vẽ player
+            if (playerImage != null)
+            {
+                e.Graphics.DrawImage(playerImage, new Point(posX, posY));
+            }
+
+            // <<< MỚI: Vẽ cục lửa (vẽ sau player để nó đè lên trên)
+            if (currentEffect != null && currentEffect.IsActive)
+            {
+                currentEffect.Draw(e.Graphics);
             }
         }
 
@@ -173,7 +212,6 @@ namespace Game
             // XỬ LÝ NHẢY
             if (isJumping)
             {
-                // XÁC ĐỊNH HƯỚNG NHẢY
                 if (isRightPressed)
                 {
                     currentState = CharacterState.JumpRight;
@@ -243,11 +281,10 @@ namespace Game
             CurrentImageIndex++;
             if (CurrentImageIndex >= maxFrames)
             {
-                // Nếu đang nhảy, giữ frame cuối
                 if (isJumping)
-                    CurrentImageIndex = maxFrames - 1;
+                    CurrentImageIndex = maxFrames - 1; // Giữ frame cuối nếu đang nhảy
                 else
-                    CurrentImageIndex = 0;
+                    CurrentImageIndex = 0; // Quay về 0 nếu là idle/walk
             }
 
             // DI CHUYỂN TRÁI PHẢI
@@ -264,12 +301,47 @@ namespace Game
                     posX = 0;
             }
 
+            // <<< MỚI: Cập nhật cục lửa
+            if (currentEffect != null && currentEffect.IsActive)
+            {
+                currentEffect.Update();
+                // Nếu effect chạy xong, xóa nó đi (null)
+                if (!currentEffect.IsActive)
+                    currentEffect = null;
+            }
+
             this.Invalidate();
         }
 
+        // <<< MỚI: Thêm hàm Tấn Công (Attack)
+        private void FireAttack()
+        {
+            // Chỉ tấn công nếu cục lửa cũ đã nổ xong
+            if (currentEffect == null || !currentEffect.IsActive)
+            {
+                // Ước lượng kích thước player
+                int playerWidth = 0;
+                int playerHeight = 0;
+
+                // Lấy kích thước từ ảnh idle đầu tiên (để biết tâm)
+                if (IdleImages.Count > 0)
+                {
+                    playerWidth = IdleImages[0].Width;
+                    playerHeight = IdleImages[0].Height;
+                }
+
+                // <<< MỚI: Tính vị trí TRUNG TÂM của player
+                Point spawnPosition = new Point(posX + (playerWidth / 2), posY + (playerHeight / 2));
+
+                // Tạo cục lửa tại tâm player, theo hướng player
+                currentEffect = new SpellEffect(spawnPosition, this.lastFacingRight);
+            }
+        }
+
+
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Right )
+            if (e.KeyCode == Keys.Right)
             {
                 if (!isRightPressed)
                 {
@@ -277,7 +349,7 @@ namespace Game
                     if (!isJumping) CurrentImageIndex = 0;
                 }
             }
-            else if (e.KeyCode == Keys.Left )
+            else if (e.KeyCode == Keys.Left)
             {
                 if (!isLeftPressed)
                 {
@@ -295,6 +367,11 @@ namespace Game
                     CurrentImageIndex = 0;
                 }
             }
+            // <<< MỚI: Thêm phím E để Tấn Công
+            else if (e.KeyCode == Keys.E)
+            {
+                FireAttack();
+            }
         }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)
@@ -308,9 +385,147 @@ namespace Game
                 isLeftPressed = false;
             }
 
+            // Nếu thả hết phím (và không nhảy) thì reset animation
             if (!isRightPressed && !isLeftPressed && !isJumping)
             {
                 CurrentImageIndex = 0;
+            }
+        }
+    }
+
+
+    //===================================================================
+    // CLASS SPELLEFFECT (GỘP CHUNG FILE)
+    //===================================================================
+    public class SpellEffect
+    {
+        // --- Dữ liệu tĩnh (Static) ---
+        private static List<Image> frames = new List<Image>();
+        private static bool isLoaded = false;
+
+        // CHỖ CHỈNH TỈ LỆ (0.5f = 50%)
+        private static float scale = 0.5f;
+
+        // --- Dữ liệu của đối tượng (Instance) ---
+        private Point position;
+        private int currentFrameIndex;
+        private bool isActive;
+        private bool facingRight;
+        private int speedX;
+
+        // CHỖ CHỈNH TỐC ĐỘ LƯỚT
+        private const int MOVEMENT_SPEED = 15;
+
+        public bool IsActive
+        {
+            get { return isActive; }
+        }
+
+        /// <summary>
+        /// Load 8 frame ảnh từ Resources (chỉ chạy 1 lần)
+        /// Sếp PHẢI THÊM 8 ảnh Fire_Arrow_Frame... vào Resources của Project
+        /// </summary>
+        public static void LoadContent()
+        {
+            if (isLoaded) return; // Chỉ load 1 lần
+
+            try
+            {
+                // Lấy ảnh trực tiếp từ Resources
+                frames.Add(Resources.Fire_Arrow_Frame_01);
+                frames.Add(Resources.Fire_Arrow_Frame_02);
+                frames.Add(Resources.Fire_Arrow_Frame_03);
+                frames.Add(Resources.Fire_Arrow_Frame_04);
+                frames.Add(Resources.Fire_Arrow_Frame_05);
+                frames.Add(Resources.Fire_Arrow_Frame_06);
+                frames.Add(Resources.Fire_Arrow_Frame_07);
+                frames.Add(Resources.Fire_Arrow_Frame_08);
+
+                isLoaded = true; // Đánh dấu là đã load thành công
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi load ảnh từ Resources: " + ex.Message + "\nSếp đã thêm 8 ảnh Fire_Arrow... vào Properties.Resources chưa?");
+            }
+        }
+
+        /// <summary>
+        /// Constructor: Tạo ra 1 cục lửa mới
+        /// </summary>
+        public SpellEffect(Point startPosition, bool facingRight)
+        {
+            // Báo lỗi nếu chưa load ảnh
+            if (!isLoaded || frames.Count == 0)
+            {
+                this.isActive = false;
+                return;
+            }
+
+            this.position = startPosition;
+            this.currentFrameIndex = 0;
+            this.isActive = true;
+            this.facingRight = facingRight;
+
+            // Set tốc độ dựa vào hướng
+            if (this.facingRight)
+            {
+                this.speedX = MOVEMENT_SPEED;
+            }
+            else
+            {
+                this.speedX = -MOVEMENT_SPEED;
+            }
+        }
+
+        /// <summary>
+        /// Hàm Update: Được gọi mỗi tick của Timer, dùng để di chuyển và lật frame
+        /// </summary>
+        public void Update()
+        {
+            if (!isActive) return;
+
+            // Cập nhật vị trí lướt
+            this.position.X += this.speedX;
+
+            // Chuyển frame tiếp theo
+            currentFrameIndex++;
+
+            // Nếu là frame cuối thì hủy
+            if (currentFrameIndex >= frames.Count)
+            {
+                isActive = false;
+            }
+        }
+
+        /// <summary>
+        /// Hàm Draw: Vẽ cục lửa lên màn hình (có xử lý tỉ lệ và lật ảnh)
+        /// </summary>
+        public void Draw(Graphics g)
+        {
+            if (!isActive) return;
+
+            Image currentFrame = frames[currentFrameIndex];
+
+            // --- TÍNH TOÁN TỈ LỆ ---
+            int newWidth = (int)(currentFrame.Width * scale);
+            int newHeight = (int)(currentFrame.Height * scale);
+            // Căn giữa cục lửa tại "position"
+            int drawX = position.X - newWidth / 2;
+            int drawY = position.Y - newHeight / 2;
+            Rectangle destRect = new Rectangle(drawX, drawY, newWidth, newHeight);
+
+            // --- XỬ LÝ QUAY HƯỚNG ---
+            // Clone ảnh để tránh lật (Flip) cái ảnh gốc trong list
+            using (Image frameToDraw = (Image)currentFrame.Clone())
+            {
+                // Nếu quay phải, lật ảnh theo chiều X
+                if (this.facingRight)
+                {
+                    frameToDraw.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                }
+
+                // Vẽ cái ảnh đã (hoặc chưa) lật
+                g.DrawImage(frameToDraw, destRect);
             }
         }
     }

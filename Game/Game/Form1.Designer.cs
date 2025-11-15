@@ -39,7 +39,7 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Name = "Form1";
             this.Text = "Effect Test";
-            this.BackColor = System.Drawing.Color.Black; // Set nền đen để dễ thấy effect
+            this.BackColor = System.Drawing.Color.Black;
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
@@ -49,7 +49,6 @@
 
         #endregion
 
-        // Timer để chạy animation
         private System.Windows.Forms.Timer animationTimer;
     }
 }
