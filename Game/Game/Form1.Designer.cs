@@ -56,3 +56,7 @@
     }
 }
 
+        // Timer để chạy animation
+        private System.Windows.Forms.Timer animationTimer;
+    }
+}

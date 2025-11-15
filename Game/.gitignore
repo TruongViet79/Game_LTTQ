@@ -1,0 +1,26 @@
+﻿Bắt đầu từ đây
+
+Loại bỏ các file tạm của Visual Studio
+
+.vs
+*.suo
+*.user
+*.sln.docstates
+
+Loại bỏ các file build (file .exe, .dll)
+
+[Bb]in/
+[Oo]bj/
+[Rr]elease/
+[Dd]ebug/
+
+Loại bỏ file database tạm
+
+*.db
+*.db-shm
+*.db-wal
+
+Các file hệ thống khác
+
+*.[Cc]ache
+*.orig

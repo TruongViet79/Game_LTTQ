@@ -9,8 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+// Thêm cái này để dùng Resources
+using Game.Properties;
+
 namespace Game
 {
+    /// <summary>
+    /// Class chính của Form, chứa logic điều khiển game loop và input
+    /// </summary>
     public partial class Form1 : Form
     {
         private List<Image> IdleImages = new List<Image>();
