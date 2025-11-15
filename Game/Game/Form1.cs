@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -18,279 +19,298 @@ namespace Game
     /// </summary>
     public partial class Form1 : Form
     {
-        // Vị trí "fake" của player (giữa màn hình)
-        private Point playerPosition;
+        private List<Image> IdleImages = new List<Image>();
+        private List<Image> WalkImagesRight = new List<Image>();
+        private List<Image> WalkImagesLeft = new List<Image>();
+        private List<Image> JumpImagesRight = new List<Image>(); // NHẢY PHẢI
+        private List<Image> JumpImagesLeft = new List<Image>();  // NHẢY TRÁI
 
-        // Biến để giữ đối tượng hiệu ứng đang chạy
-        private SpellEffect currentEffect = null;
+        private int IdleIndexMaxImages = 6;
+        private int WalkIndexMaxImages = 6;
+        private int JumpIndexMaxImages = 10;
+        private int CurrentImageIndex = 0;
 
-        // <<< MỚI: Thêm biến lưu hướng của Player
-        // Mặc định là 'false' = quay trái (vì ảnh gốc của sếp quay trái)
-        private bool isPlayerFacingRight = false;
+        private enum CharacterState { Idle, WalkRight, WalkLeft, JumpRight, JumpLeft } // THÊM 2 STATE
+        private CharacterState currentState = CharacterState.Idle;
 
+        private int posX = 100;
+        private int posY = 200;
+        private int moveSpeed = 10;
+
+        private bool isRightPressed = false;
+        private bool isLeftPressed = false;
+        private bool isJumping = false;
+        private bool lastFacingRight = true; // Nhớ hướng cuối cùng
+
+        private int jumpSpeed = 12;
+        private int gravity = 1;
+        private int velocityY = 0;
+        private int groundY = 200;
+
+        // BACKGROUND
+        private Image backgroundImage;
 
         public Form1()
         {
             InitializeComponent();
-
-            // Giảm giật/lag hình khi vẽ
+            LoadIdleImages();
+            LoadJumpImages();
+            LoadBackground();
             this.DoubleBuffered = true;
+            this.KeyPreview = true;
+            animationTimer.Start();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void LoadIdleImages()
         {
-            // Set vị trí player là giữa màn hình
-            playerPosition = new Point(this.ClientSize.Width / 2, this.ClientSize.Height / 2);
+            for (int i = 1; i <= IdleIndexMaxImages; i++)
+                IdleImages.Add(Image.FromFile($@"Resources\CharacterStand\idle{i}.png"));
 
-            // Tải tài nguyên (ảnh) cho class SpellEffect
-            // Hàm này sẽ tự động load ảnh từ Properties.Resources
-            SpellEffect.LoadContent();
+            for (int i = 1; i <= WalkIndexMaxImages; i++)
+            {
+                WalkImagesRight.Add(Image.FromFile($@"Resources\CharacterRunning\Right\idle{i}.png"));
+                WalkImagesLeft.Add(Image.FromFile($@"Resources\CharacterRunning\Left\idle{i}.png"));
+            }
+        }
 
-            // Cấu hình Timer
-            this.animationTimer.Interval = 100; // 100ms = 10 frame/giây. Chỉnh tốc độ ở đây
-            this.animationTimer.Tick += AnimationTimer_Tick;
+        // CẮT SPRITE SHEET NHẢY (CẢ TRÁI VÀ PHẢI)
+        private void LoadJumpImages()
+        {
+            // Load sprite sheet nhảy phải
+            Image jumpSpriteSheetRight = Image.FromFile(@"Resources\CharacterJump\Right\jump_spritesheet.png");
+            // Load sprite sheet nhảy trái
+            Image jumpSpriteSheetLeft = Image.FromFile(@"Resources\CharacterJump\Left\jump_spritesheett.png");
+
+            int frameCount = JumpIndexMaxImages;
+            int frameWidth = jumpSpriteSheetRight.Width / frameCount;
+            int frameHeight = jumpSpriteSheetRight.Height;
+
+            // CẮT NHẢY PHẢI
+            for (int i = 0; i < frameCount; i++)
+            {
+                Bitmap frame = new Bitmap(frameWidth, frameHeight);
+                using (Graphics g = Graphics.FromImage(frame))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+
+                    g.DrawImage(
+                        jumpSpriteSheetRight,
+                        new Rectangle(0, 0, frameWidth, frameHeight),
+                        new Rectangle(i * frameWidth, 0, frameWidth, frameHeight),
+                        GraphicsUnit.Pixel
+                    );
+                }
+                JumpImagesRight.Add(frame);
+            }
+
+            // CẮT NHẢY TRÁI
+            for (int i = 0; i < frameCount; i++)
+            {
+                Bitmap frame = new Bitmap(frameWidth, frameHeight);
+                using (Graphics g = Graphics.FromImage(frame))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+
+                    g.DrawImage(
+                        jumpSpriteSheetLeft,
+                        new Rectangle(0, 0, frameWidth, frameHeight),
+                        new Rectangle(i * frameWidth, 0, frameWidth, frameHeight),
+                        GraphicsUnit.Pixel
+                    );
+                }
+                JumpImagesLeft.Add(frame);
+            }
+
+            jumpSpriteSheetRight.Dispose();
+            jumpSpriteSheetLeft.Dispose();
+        }
+
+        private void LoadBackground()
+        {
+            backgroundImage = Image.FromFile(@"Resources\Background\background.jpg");
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            // Vẽ một dấu + ở vị trí "player" để dễ hình dung
-            Pen playerPen = new Pen(Color.White, 2);
-            e.Graphics.DrawLine(playerPen, playerPosition.X - 10, playerPosition.Y, playerPosition.X + 10, playerPosition.Y);
-            e.Graphics.DrawLine(playerPen, playerPosition.X, playerPosition.Y - 10, playerPosition.X, playerPosition.Y + 10);
-
-            // <<< MỚI: Vẽ mũi tên nhỏ chỉ hướng player
-            if (isPlayerFacingRight)
+            // VẼ BACKGROUND
+            if (backgroundImage != null)
             {
-                e.Graphics.DrawLine(playerPen, playerPosition.X + 10, playerPosition.Y, playerPosition.X + 5, playerPosition.Y - 5);
-                e.Graphics.DrawLine(playerPen, playerPosition.X + 10, playerPosition.Y, playerPosition.X + 5, playerPosition.Y + 5);
-            }
-            else
-            {
-                e.Graphics.DrawLine(playerPen, playerPosition.X - 10, playerPosition.Y, playerPosition.X - 5, playerPosition.Y - 5);
-                e.Graphics.DrawLine(playerPen, playerPosition.X - 10, playerPosition.Y, playerPosition.X - 5, playerPosition.Y + 5);
+                e.Graphics.DrawImage(backgroundImage, 0, 0, this.ClientSize.Width, this.ClientSize.Height);
             }
 
-            playerPen.Dispose();
+            // VẼ NHÂN VẬT
+            int safeIndex = CurrentImageIndex;
 
-            // Nếu hiệu ứng đang active thì BẢO NÓ TỰ VẼ
-            if (currentEffect != null && currentEffect.IsActive)
+            switch (currentState)
             {
-                currentEffect.Draw(e.Graphics);
+                case CharacterState.Idle:
+                    if (safeIndex < IdleImages.Count)
+                        e.Graphics.DrawImage(IdleImages[safeIndex], new Point(posX, posY));
+                    break;
+                case CharacterState.WalkRight:
+                    if (safeIndex < WalkImagesRight.Count)
+                        e.Graphics.DrawImage(WalkImagesRight[safeIndex], new Point(posX, posY));
+                    break;
+                case CharacterState.WalkLeft:
+                    if (safeIndex < WalkImagesLeft.Count)
+                        e.Graphics.DrawImage(WalkImagesLeft[safeIndex], new Point(posX, posY));
+                    break;
+                case CharacterState.JumpRight:
+                    if (safeIndex < JumpImagesRight.Count)
+                        e.Graphics.DrawImage(JumpImagesRight[safeIndex], new Point(posX, posY));
+                    break;
+                case CharacterState.JumpLeft:
+                    if (safeIndex < JumpImagesLeft.Count)
+                        e.Graphics.DrawImage(JumpImagesLeft[safeIndex], new Point(posX, posY));
+                    break;
             }
         }
 
-        /// <summary>
-        /// Sửa lại hàm này: Thêm tham số "hướng"
-        /// </summary>
-        private void FireAttack(Point position, bool facingRight)
+        private void animationTimer_Tick(object sender, EventArgs e)
         {
-            // Chỉ tạo hiệu ứng mới nếu hiệu ứng cũ đã chạy xong
-            if (currentEffect == null || !currentEffect.IsActive)
+            // XỬ LÝ NHẢY
+            if (isJumping)
             {
-                // Tạo một đối tượng hiệu ứng mới tại vị trí
-                // <<< MỚI: Báo cho effect biết hướng quay
-                currentEffect = new SpellEffect(position, facingRight);
+                // XÁC ĐỊNH HƯỚNG NHẢY
+                if (isRightPressed)
+                {
+                    currentState = CharacterState.JumpRight;
+                    lastFacingRight = true;
+                }
+                else if (isLeftPressed)
+                {
+                    currentState = CharacterState.JumpLeft;
+                    lastFacingRight = false;
+                }
+                else
+                {
+                    // Nhảy tại chỗ - giữ hướng cuối cùng
+                    currentState = lastFacingRight ? CharacterState.JumpRight : CharacterState.JumpLeft;
+                }
 
-                // Bắt đầu chạy Timer
-                this.animationTimer.Start();
+                // Vật lý nhảy
+                posY += velocityY;
+                velocityY += gravity;
+
+                // Chạm đất
+                if (posY >= groundY)
+                {
+                    posY = groundY;
+                    velocityY = 0;
+                    isJumping = false;
+                    CurrentImageIndex = 0;
+                }
             }
+            else
+            {
+                // XỬ LÝ ĐI BỘ KHI KHÔNG NHẢY
+                if (isRightPressed)
+                {
+                    currentState = CharacterState.WalkRight;
+                    lastFacingRight = true;
+                }
+                else if (isLeftPressed)
+                {
+                    currentState = CharacterState.WalkLeft;
+                    lastFacingRight = false;
+                }
+                else
+                {
+                    currentState = CharacterState.Idle;
+                }
+            }
+
+            // XÁC ĐỊNH SỐ FRAME
+            int maxFrames = IdleIndexMaxImages;
+            switch (currentState)
+            {
+                case CharacterState.Idle:
+                    maxFrames = IdleIndexMaxImages;
+                    break;
+                case CharacterState.WalkRight:
+                case CharacterState.WalkLeft:
+                    maxFrames = WalkIndexMaxImages;
+                    break;
+                case CharacterState.JumpRight:
+                case CharacterState.JumpLeft:
+                    maxFrames = JumpIndexMaxImages;
+                    break;
+            }
+
+            // TĂNG FRAME ANIMATION
+            CurrentImageIndex++;
+            if (CurrentImageIndex >= maxFrames)
+            {
+                // Nếu đang nhảy, giữ frame cuối
+                if (isJumping)
+                    CurrentImageIndex = maxFrames - 1;
+                else
+                    CurrentImageIndex = 0;
+            }
+
+            // DI CHUYỂN TRÁI PHẢI
+            if (isRightPressed)
+            {
+                posX += moveSpeed;
+                if (posX > this.ClientSize.Width - 100)
+                    posX = this.ClientSize.Width - 100;
+            }
+            else if (isLeftPressed)
+            {
+                posX -= moveSpeed;
+                if (posX < 0)
+                    posX = 0;
+            }
+
+            this.Invalidate();
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            // <<< MỚI: Thêm phím A và D để đổi hướng
-            if (e.KeyCode == Keys.A)
+            if (e.KeyCode == Keys.Right )
             {
-                isPlayerFacingRight = false;
-                this.Invalidate(); // Vẽ lại form để thấy mũi tên đổi hướng
-            }
-
-            if (e.KeyCode == Keys.D)
-            {
-                isPlayerFacingRight = true;
-                this.Invalidate(); // Vẽ lại form
-            }
-
-            // Khi nhấn phím cách
-            if (e.KeyCode == Keys.Space)
-            {
-                // <<< MỚI: Bắn chiêu theo hướng của player
-                FireAttack(playerPosition, isPlayerFacingRight);
-            }
-        }
-
-        private void AnimationTimer_Tick(object sender, EventArgs e)
-        {
-            // Nếu có hiệu ứng đang chạy
-            if (currentEffect != null && currentEffect.IsActive)
-            {
-                // Bảo nó tự cập nhật
-                currentEffect.Update();
-
-                // Nếu sau khi cập nhật mà nó hết active
-                if (!currentEffect.IsActive)
+                if (!isRightPressed)
                 {
-                    // Dừng timer
-                    this.animationTimer.Stop();
+                    isRightPressed = true;
+                    if (!isJumping) CurrentImageIndex = 0;
                 }
-
-                // Yêu cầu vẽ lại Form (để cập nhật frame mới)
-                this.Invalidate();
             }
-            else
+            else if (e.KeyCode == Keys.Left )
             {
-                // Nếu không có gì để update thì dừng timer
-                this.animationTimer.Stop();
-            }
-        }
-    }
-
-    // ===================================================================
-    // Class SpellEffect được gộp vào đây
-    // ===================================================================
-    public class SpellEffect
-    {
-        // --- Dữ liệu tĩnh (Static) ---
-        private static List<Image> frames = new List<Image>();
-        private static bool isLoaded = false;
-
-        // <<< MỚI: CHỖ CHỈNH TỈ LỆ
-        // 1.0f = 100% (như cũ), 0.5f = 50% (nhỏ bằng 1 nửa)
-        // Sếp sửa số này nhé!
-        private static float scale = 0.5f;
-
-
-        // --- Dữ liệu của đối tượng (Instance) ---
-        private Point position;
-        private int currentFrameIndex;
-        private bool isActive;
-
-        // <<< MỚI: Thêm biến lưu hướng
-        private bool facingRight;
-
-        // <<< MỚI: Thêm biến tốc độ di chuyển
-        private int speedX;
-
-        // <<< MỚI: Hằng số tốc độ
-        // Sếp chỉnh tốc độ lướt ở đây (pixel mỗi tick timer)
-        private const int MOVEMENT_SPEED = 15;
-
-        // --- Thuộc tính (Properties) ---
-        public bool IsActive
-        {
-            get { return isActive; }
-        }
-
-        /// <summary>
-        /// Sửa lại hàm này để load ảnh từ Properties.Resources
-        /// </summary>
-        public static void LoadContent()
-        {
-            if (isLoaded) return; // Chỉ load 1 lần
-
-            try
-            {
-                frames.Add(Resources.Fire_Arrow_Frame_01);
-                frames.Add(Resources.Fire_Arrow_Frame_02);
-                frames.Add(Resources.Fire_Arrow_Frame_03);
-                frames.Add(Resources.Fire_Arrow_Frame_04);
-                frames.Add(Resources.Fire_Arrow_Frame_05);
-                frames.Add(Resources.Fire_Arrow_Frame_06);
-                frames.Add(Resources.Fire_Arrow_Frame_07);
-                frames.Add(Resources.Fire_Arrow_Frame_08);
-
-                isLoaded = true; // Đánh dấu là đã load thành công
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi khi load ảnh từ Resources: " + ex.Message + "\nKiểm tra lại tên ảnh trong Resources.resx nhé!");
-            }
-        }
-
-        /// <summary>
-        /// Constructor: <<< Sửa lại, thêm tham số 'facingRight'
-        /// </summary>
-        public SpellEffect(Point startPosition, bool facingRight)
-        {
-            if (!isLoaded || frames.Count == 0)
-            {
-                this.isActive = false;
-                return;
-            }
-
-            this.position = startPosition;
-            this.currentFrameIndex = 0;
-            this.isActive = true;
-            this.facingRight = facingRight; // <<< MỚI: Lưu lại hướng
-
-            // <<< MỚI: Set tốc độ dựa vào hướng
-            if (this.facingRight)
-            {
-                this.speedX = MOVEMENT_SPEED;
-            }
-            else
-            {
-                this.speedX = -MOVEMENT_SPEED;
-            }
-        }
-
-        /// <summary>
-        /// Hàm Update: Được gọi mỗi tick của Timer
-        /// </summary>
-        public void Update()
-        {
-            if (!isActive) return;
-
-            // <<< MỚI: Cập nhật vị trí
-            // Mỗi lần update (mỗi tick của timer)
-            // Vị trí X sẽ được cộng thêm tốc độ
-            this.position.X += this.speedX;
-
-            // Chuyển frame tiếp theo
-            currentFrameIndex++;
-
-            // Nếu đã qua frame cuối
-            if (currentFrameIndex >= frames.Count)
-            {
-                isActive = false; // Hủy kích hoạt
-            }
-        }
-
-        /// <summary>
-        /// Hàm Draw: 
-        /// </summary>
-        public void Draw(Graphics g)
-        {
-            if (!isActive) return;
-
-            // Lấy ảnh gốc
-            Image currentFrame = frames[currentFrameIndex];
-
-            // --- TÍNH TOÁN TỈ LỆ ---
-            // Lấy kích thước mới dựa trên tỉ lệ (scale)
-            int newWidth = (int)(currentFrame.Width * scale);
-            int newHeight = (int)(currentFrame.Height * scale);
-
-            // Tính toán vị trí X, Y để căn giữa cục lửa
-            int drawX = position.X - newWidth / 2;
-            int drawY = position.Y - newHeight / 2;
-
-            // Tạo một hình chữ nhật là khu vực sẽ vẽ
-            Rectangle destRect = new Rectangle(drawX, drawY, newWidth, newHeight);
-
-            // --- XỬ LÝ QUAY HƯỚNG ---
-            // Phải "Clone" (nhân bản) ảnh, VÌ NẾU FLIP ẢNH GỐC (STATIC) NÓ SẼ BỊ HƯ LUÔN
-            using (Image frameToDraw = (Image)currentFrame.Clone())
-            {
-                // Nếu đang quay phải
-                if (this.facingRight)
+                if (!isLeftPressed)
                 {
-                    // Lật ảnh theo chiều ngang
-                    frameToDraw.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                    isLeftPressed = true;
+                    if (!isJumping) CurrentImageIndex = 0;
                 }
+            }
+            else if (e.KeyCode == Keys.Space || e.KeyCode == Keys.W || e.KeyCode == Keys.Up)
+            {
+                // NHẢY
+                if (!isJumping)
+                {
+                    isJumping = true;
+                    velocityY = -jumpSpeed;
+                    CurrentImageIndex = 0;
+                }
+            }
+        }
 
-                // Vẽ ảnh đã (có thể) lật, và co dãn vào hình chữ nhật đích
-                g.DrawImage(frameToDraw, destRect);
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D)
+            {
+                isRightPressed = false;
+            }
+            else if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
+            {
+                isLeftPressed = false;
+            }
+
+            if (!isRightPressed && !isLeftPressed && !isJumping)
+            {
+                CurrentImageIndex = 0;
             }
         }
     }
