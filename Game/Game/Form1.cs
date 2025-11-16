@@ -73,33 +73,54 @@ namespace Game
         // <<< MỚI: TẠO LẠI HÀM FORM1_LOAD ĐỂ SỬA LỖI
         private void Form1_Load(object sender, EventArgs e)
         {
-            // Dời code load của sếp vào đây
+            
             LoadIdleImages();
             LoadJumpImages();
             LoadBackground();
 
-            // Sếp phải chắc chắn 8 ảnh Fire_Arrow... có trong Resources nhé!
             SpellEffect.LoadContent();
         }
 
 
         private void LoadIdleImages()
         {
-            for (int i = 1; i <= IdleIndexMaxImages; i++)
-                IdleImages.Add(Image.FromFile($@"Resources\CharacterStand\idle{i}.png"));
-
-            for (int i = 1; i <= WalkIndexMaxImages; i++)
+            try
             {
-                WalkImagesRight.Add(Image.FromFile($@"Resources\CharacterRunning\Right\idle{i}.png"));
-                WalkImagesLeft.Add(Image.FromFile($@"Resources\CharacterRunning\Left\idle{i}.png"));
+                // 1. Đứng Yên (Idle) 
+                IdleImages.Add(Resources.Standing1);
+                IdleImages.Add(Resources.Standing2);
+                IdleImages.Add(Resources.Standing3);
+                IdleImages.Add(Resources.Standing4);
+                IdleImages.Add(Resources.Standing5);
+                IdleImages.Add(Resources.Standing6);
+
+                // 2. Chạy Phải (Run Right) 
+                WalkImagesRight.Add(Resources.idle1Right);
+                WalkImagesRight.Add(Resources.idle2Right);
+                WalkImagesRight.Add(Resources.idle3Right);
+                WalkImagesRight.Add(Resources.idle4Right);
+                WalkImagesRight.Add(Resources.idle5Right);
+                WalkImagesRight.Add(Resources.idle6Right);
+
+                // 3. Chạy Trái (Run Left)
+                WalkImagesLeft.Add(Resources.idle1);
+                WalkImagesLeft.Add(Resources.idle2);
+                WalkImagesLeft.Add(Resources.idle3);
+                WalkImagesLeft.Add(Resources.idle4);
+                WalkImagesLeft.Add(Resources.idle5);
+                WalkImagesLeft.Add(Resources.idle6);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi load ảnh Idle/Walk (Bước 1): " + ex.Message);
             }
         }
 
         // CẮT SPRITE SHEET NHẢY (CẢ TRÁI VÀ PHẢI)
         private void LoadJumpImages()
         {
-            Image jumpSpriteSheetRight = Image.FromFile(@"Resources\CharacterJump\Right\jump_spritesheet.png");
-            Image jumpSpriteSheetLeft = Image.FromFile(@"Resources\CharacterJump\Left\jump_spritesheett.png");
+            Image jumpSpriteSheetRight = Resources.jumpRight;
+            Image jumpSpriteSheetLeft = Resources.jumpLeft;
 
             int frameCount = JumpIndexMaxImages;
             int frameWidth = jumpSpriteSheetRight.Width / frameCount;
@@ -156,7 +177,7 @@ namespace Game
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi load ảnh Background: " + ex.Message + "\nSếp đã thêm ảnh (background) vào Resources.resx chưa?");
+                MessageBox.Show("Lỗi load ảnh Background: " + ex.Message);
             }
         }
 
@@ -445,7 +466,7 @@ namespace Game
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi load ảnh từ Resources: " + ex.Message + "\nSếp đã thêm 8 ảnh Fire_Arrow... vào Properties.Resources chưa?");
+                MessageBox.Show("Lỗi khi load ảnh từ Resources: " + ex.Message );
             }
         }
 
