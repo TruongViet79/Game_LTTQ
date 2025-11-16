@@ -118,6 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="background" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\background.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Fire Arrow_Frame_01" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Fire Arrow_Frame_01.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -141,5 +144,77 @@
   </data>
   <data name="Fire Arrow_Frame_08" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Fire Arrow_Frame_08.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle1Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle1Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle2Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle2Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle3Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle3Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle4Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle4Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle5Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle5Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle6Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle6Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle7Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle7Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="idle8Right" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\idle8Right.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="jumpLeft" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\jump_spritesheett.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="jumpRight" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\jump_spritesheet.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Standing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Standing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Standing2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Standing2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Standing3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Standing3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Standing4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Standing4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Standing5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Standing5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Standing6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Standing6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
