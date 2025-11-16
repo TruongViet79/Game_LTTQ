@@ -1,26 +1,19 @@
-﻿Bắt đầu từ đây
-
-Loại bỏ các file tạm của Visual Studio
-
-.vs
+## Ignore Visual Studio temporary files, build results, and user-specific files ##
+.vs/
 *.suo
 *.user
+*.userosscache
 *.sln.docstates
 
-Loại bỏ các file build (file .exe, .dll)
-
+## Ignore Build folders ##
 [Bb]in/
 [Oo]bj/
-[Rr]elease/
-[Dd]ebug/
 
-Loại bỏ file database tạm
-
+## Ignore Database files ##
 *.db
-*.db-shm
-*.db-wal
+*.sqlite
+*.sqlite-journal
 
-Các file hệ thống khác
-
-*.[Cc]ache
-*.orig
+## Ignore other temp files ##
+thumbs.db
+*.log

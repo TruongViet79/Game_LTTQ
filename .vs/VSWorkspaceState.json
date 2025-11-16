@@ -1,8 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Game"
+    "\\BT_LT_LTTQ_4",
+    "\\BT_LT_LTTQ_4\\Lam_Game",
+    "\\BT_LT_LTTQ_4\\Lam_Game\\bin\\Debug",
+    "\\Game",
+    "\\Game\\Game"
   ],
-  "SelectedNode": "\\Game\\Game.sln",
+  "SelectedNode": "\\Game\\Game\\Form1.resx",
   "PreviewInSolutionExplorer": false
 }
