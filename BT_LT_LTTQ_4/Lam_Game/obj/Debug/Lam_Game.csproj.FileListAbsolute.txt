@@ -1,0 +1,10 @@
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\bin\Debug\Lam_Game.exe.config
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\bin\Debug\Lam_Game.exe
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\bin\Debug\Lam_Game.pdb
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.csproj.AssemblyReference.cache
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.Properties.Resources.resources
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.csproj.GenerateResource.cache
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.csproj.CoreCompileInputs.cache
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.exe
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.pdb
+D:\Bài làm\LTTQ\BT_LT_LTTQ_4\Lam_Game\obj\Debug\Lam_Game.exe.config
