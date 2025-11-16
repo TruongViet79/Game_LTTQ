@@ -20,20 +20,20 @@ namespace Game
         private List<Image> WalkImagesLeft = new List<Image>();
         private List<Image> JumpImagesRight = new List<Image>();
         private List<Image> JumpImagesLeft = new List<Image>();
-        // <<< MỚI: Danh sách ảnh cho hành động Tấn công >>>
         private List<Image> AttackImages = new List<Image>();
 
         private int IdleIndexMaxImages = 6;
         private int WalkIndexMaxImages = 8;
         private int JumpIndexMaxImages = 10;
-        // <<< MỚI: Số lượng frame cho Attack >>>
-        private int AttackIndexMaxImages = 4; // Vì có 4 ảnh trong sprite chưởng
+        private int AttackIndexMaxImages = 4;
+
+        private int attackDelayCount = 0;
+        private int attackDelayMax = 2;
+
         private int CurrentPlayerImageIndex = 0;
 
-        // <<< MỚI: Thêm trạng thái Attack vào enum CharacterState >>>
         private enum CharacterState { Idle, WalkRight, WalkLeft, JumpRight, JumpLeft, Attack }
         private CharacterState currentCharacterState = CharacterState.Idle;
-        // <<< MỚI: Lưu trạng thái trước đó để quay lại sau khi Attack xong >>>
         private CharacterState previousCharacterState = CharacterState.Idle;
 
         private int playerPosX = 100;
@@ -45,7 +45,6 @@ namespace Game
         private bool isLeftPressed = false;
         private bool isJumping = false;
         private bool lastFacingRight = true;
-        // <<< MỚI: Biến kiểm soát Attack >>>
         private bool isAttacking = false;
 
         private int jumpSpeed = 18;
@@ -60,7 +59,6 @@ namespace Game
         // --- Biến của Slime ---
         private List<Image> SlimeWalkImages = new List<Image>();
         private List<Image> SlimeDeathImages = new List<Image>();
-        // <<< SỬA: CHỈ CÓ 7 ẢNH SLIME THÔI >>>
         private int SlimeWalkIndexMaxImages = 7;
         private int SlimeDeathIndexMaxImages = 12;
         private float slimeScale = 1f;
@@ -109,6 +107,9 @@ namespace Game
             this.animationTimer.Tick += animationTimer_Tick;
             this.KeyUp += Form1_KeyUp;
 
+            // <<< MỚI: Đăng ký sự kiện Click Chuột >>>
+            this.MouseDown += Form1_MouseDown;
+
             this.animationTimer.Interval = 50;
             this.animationTimer.Start();
         }
@@ -118,7 +119,6 @@ namespace Game
             LoadIdleImages();
             LoadWalkImages();
             LoadJumpImages();
-            // <<< MỚI: Load ảnh Attack >>>
             LoadAttackImages();
             LoadBackground();
             LoadSlimeImages();
@@ -132,22 +132,22 @@ namespace Game
         private void LoadJumpImages() { try { Image jumpSpriteSheetRight = Resources.jumpRight; Image jumpSpriteSheetLeft = Resources.jumpLeft; int frameCount = JumpIndexMaxImages; int frameWidth = jumpSpriteSheetRight.Width / frameCount; int frameHeight = jumpSpriteSheetRight.Height; for (int i = 0; i < frameCount; i++) { Bitmap frame = new Bitmap(frameWidth, frameHeight); using (Graphics g = Graphics.FromImage(frame)) { g.DrawImage(jumpSpriteSheetRight, new Rectangle(0, 0, frameWidth, frameHeight), new Rectangle(i * frameWidth, 0, frameWidth, frameHeight), GraphicsUnit.Pixel); } JumpImagesRight.Add(frame); } for (int i = 0; i < frameCount; i++) { Bitmap frame = new Bitmap(frameWidth, frameHeight); using (Graphics g = Graphics.FromImage(frame)) { g.DrawImage(jumpSpriteSheetLeft, new Rectangle(0, 0, frameWidth, frameHeight), new Rectangle(i * frameWidth, 0, frameWidth, frameHeight), GraphicsUnit.Pixel); } JumpImagesLeft.Add(frame); } } catch (Exception ex) { MessageBox.Show("Lỗi load ảnh Jump: " + ex.Message); } }
         private void LoadBackground() { try { backgroundImage = Resources.background; } catch (Exception ex) { } }
 
-        // <<< MỚI: HÀM LOAD ẢNH CHO ATTACK >>>
         private void LoadAttackImages()
         {
             try
             {
-               
                 Image attackSpriteSheet = Resources.Attack_1;
                 int frameCount = AttackIndexMaxImages;
                 int frameWidth = attackSpriteSheet.Width / frameCount;
                 int frameHeight = attackSpriteSheet.Height;
-                for (int i = 0; i < frameCount; i++) {
+                for (int i = 0; i < frameCount; i++)
+                {
                     Bitmap frame = new Bitmap(frameWidth, frameHeight);
-                     using (Graphics g = Graphics.FromImage(frame)) {
-                         g.DrawImage(attackSpriteSheet, new Rectangle(0, 0, frameWidth, frameHeight), new Rectangle(i * frameWidth, 0, frameWidth, frameHeight), GraphicsUnit.Pixel);
-                     }
-                     AttackImages.Add(frame);
+                    using (Graphics g = Graphics.FromImage(frame))
+                    {
+                        g.DrawImage(attackSpriteSheet, new Rectangle(0, 0, frameWidth, frameHeight), new Rectangle(i * frameWidth, 0, frameWidth, frameHeight), GraphicsUnit.Pixel);
+                    }
+                    AttackImages.Add(frame);
                 }
 
             }
@@ -161,7 +161,6 @@ namespace Game
                 SlimeWalkImages.Add(Resources.slime01); SlimeWalkImages.Add(Resources.slime02); SlimeWalkImages.Add(Resources.slime03);
                 SlimeWalkImages.Add(Resources.slime04); SlimeWalkImages.Add(Resources.slime05); SlimeWalkImages.Add(Resources.slime06);
                 SlimeWalkImages.Add(Resources.slime07);
-                // <<< SỬA: KHÔNG LOAD SLIME 08 NỮA, CHỈ CÓ 7 SLIME THÔI >>>
                 // SlimeWalkImages.Add(Resources.slime08); 
 
                 SlimeDeathImages.AddRange(SlimeWalkImages);
@@ -184,7 +183,6 @@ namespace Game
                 case CharacterState.WalkLeft: if (safePlayerIndex < WalkImagesLeft.Count) playerImage = WalkImagesLeft[safePlayerIndex]; break;
                 case CharacterState.JumpRight: if (safePlayerIndex < JumpImagesRight.Count) playerImage = JumpImagesRight[safePlayerIndex]; break;
                 case CharacterState.JumpLeft: if (safePlayerIndex < JumpImagesLeft.Count) playerImage = JumpImagesLeft[safePlayerIndex]; break;
-                // <<< MỚI: Case Attack >>>
                 case CharacterState.Attack: if (safePlayerIndex < AttackImages.Count) playerImage = AttackImages[safePlayerIndex]; break;
             }
 
@@ -193,8 +191,8 @@ namespace Game
                 int drawWidth = (int)(playerImage.Width * playerScale);
                 int drawHeight = (int)(playerImage.Height * playerScale);
 
-                // <<< MỚI: Lật ảnh chưởng nếu đang quay trái >>>
-                if (!lastFacingRight && (currentCharacterState == CharacterState.WalkLeft || currentCharacterState == CharacterState.Attack || currentCharacterState == CharacterState.JumpLeft || currentCharacterState == CharacterState.Idle))
+                // Logic lật ảnh (WalkLeft, JumpLeft không lật, Idle và Attack lật nếu quay trái)
+                if (!lastFacingRight && (currentCharacterState == CharacterState.Idle || currentCharacterState == CharacterState.Attack))
                 {
                     using (Image flippedImage = (Image)playerImage.Clone())
                     {
@@ -217,22 +215,29 @@ namespace Game
         private void animationTimer_Tick(object sender, EventArgs e)
         {
             // --- Cập nhật PLAYER ---
-            if (isAttacking) // Nếu đang tấn công, chỉ cập nhật animation attack
+            if (isAttacking)
             {
-                CurrentPlayerImageIndex++;
-                if (CurrentPlayerImageIndex >= AttackIndexMaxImages)
+                attackDelayCount++;
+
+                if (attackDelayCount >= attackDelayMax)
                 {
-                    CurrentPlayerImageIndex = 0; // Reset animation
-                    isAttacking = false; // Kết thúc tấn công
-                    currentCharacterState = previousCharacterState; // Quay về trạng thái trước đó
+                    attackDelayCount = 0;
+                    CurrentPlayerImageIndex++;
+
+                    if (CurrentPlayerImageIndex >= AttackIndexMaxImages)
+                    {
+                        CurrentPlayerImageIndex = 0;
+                        isAttacking = false;
+                        currentCharacterState = previousCharacterState;
+                    }
                 }
             }
-            else // Nếu không tấn công, xử lý di chuyển và nhảy bình thường
+            else // Nếu không tấn công
             {
-                // 1. XỬ LÝ TRỌNG LỰC (TỰ RƠI) CỦA PLAYER
+                // 1. XỬ LÝ TRỌNG LỰC
                 if (!isJumping && playerPosY < groundY) { playerPosY += 5; if (playerPosY > groundY) playerPosY = groundY; }
 
-                // 2. XỬ LÝ NHẢY CỦA PLAYER
+                // 2. XỬ LÝ NHẢY
                 if (isJumping)
                 {
                     if (isRightPressed) { currentCharacterState = CharacterState.JumpRight; lastFacingRight = true; }
@@ -257,7 +262,7 @@ namespace Game
                 }
                 else
                 {
-                    // 3. XỬ LÝ ĐI BỘ CỦA PLAYER
+                    // 3. XỬ LÝ ĐI BỘ
                     if (isRightPressed)
                     {
                         playerPosX += playerMoveSpeed;
@@ -276,7 +281,7 @@ namespace Game
                     }
                 }
 
-                // 4. CẬP NHẬT ANIMATION CỦA PLAYER (cho Idle/Walk/Jump)
+                // 4. CẬP NHẬT ANIMATION
                 int maxPlayerFrames = IdleIndexMaxImages;
                 if (currentCharacterState == CharacterState.WalkRight || currentCharacterState == CharacterState.WalkLeft) maxPlayerFrames = WalkIndexMaxImages;
                 if (currentCharacterState == CharacterState.JumpRight || currentCharacterState == CharacterState.JumpLeft) maxPlayerFrames = JumpIndexMaxImages;
@@ -372,16 +377,14 @@ namespace Game
 
         private void FireAttack()
         {
-            // Chỉ cho phép tấn công nếu không đang tấn công và không đang nhảy
             if (!isAttacking && !isJumping)
             {
-                // Bắt đầu animation tấn công
                 isAttacking = true;
-                previousCharacterState = currentCharacterState; // Lưu trạng thái hiện tại
+                previousCharacterState = currentCharacterState;
                 currentCharacterState = CharacterState.Attack;
-                CurrentPlayerImageIndex = 0; // Bắt đầu animation chưởng từ frame đầu
+                CurrentPlayerImageIndex = 0;
+                attackDelayCount = 0;
 
-                // Tạo hiệu ứng lửa như bình thường
                 if (currentEffect == null || !currentEffect.IsActive)
                 {
                     int pW = 50; int pH = 50;
@@ -392,9 +395,18 @@ namespace Game
             }
         }
 
+        // <<< MỚI: Hàm xử lý sự kiện Click chuột trái >>>
+        private void Form1_MouseDown(object sender, MouseEventArgs e)
+        {
+            // Nếu nhấn chuột trái thì tấn công
+            if (e.Button == MouseButtons.Left)
+            {
+                FireAttack();
+            }
+        }
+
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            // Không cho di chuyển khi đang tấn công
             if (isAttacking) return;
 
             if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D) { isRightPressed = true; if (!isJumping) lastFacingRight = true; }
@@ -408,7 +420,7 @@ namespace Game
                     CurrentPlayerImageIndex = 0;
                 }
             }
-            else if (e.KeyCode == Keys.E) FireAttack();
+            // <<< ĐÃ XÓA: else if (e.KeyCode == Keys.E) FireAttack(); >>>
         }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)
@@ -416,7 +428,6 @@ namespace Game
             if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D) isRightPressed = false;
             else if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A) isLeftPressed = false;
 
-            // Chỉ reset animation về Idle nếu không đang nhảy và không đang tấn công
             if (!isJumping && !isRightPressed && !isLeftPressed && !isAttacking) CurrentPlayerImageIndex = 0;
         }
 
@@ -486,7 +497,6 @@ namespace Game
         }
     }
 
-    // CLASS SPELLEFFECT (Không thay đổi trong lần này)
     public class SpellEffect
     {
         private static List<Image> frames = new List<Image>();
